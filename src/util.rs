@@ -666,7 +666,7 @@ impl<E> ErrorKind<E> {
 }
 
 pub trait Convert<T> {
-  fn convert(T) -> Self;
+  fn convert(_: T) -> Self;
 }
 
 impl<F, E: From<F>> Convert<ErrorKind<F>> for ErrorKind<E> {

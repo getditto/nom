@@ -13,10 +13,10 @@
 //! you can know precisely which parser got to which part of the input.
 //! The main drawback is that it is a lot slower than default error
 //! management.
-use util::{Convert, ErrorKind};
 use lib::std::convert::From;
 #[cfg(feature = "alloc")]
 use lib::std::vec::Vec;
+use util::{Convert, ErrorKind};
 
 /// Contains the error that a parser can return
 ///
@@ -37,11 +37,7 @@ impl<I, H: From<I>, F, E: From<F>> Convert<Context<I, F>> for Context<H, E> {
   fn convert(c: Context<I, F>) -> Self {
     match c {
       Context::Code(i, e) => Context::Code(i.into(), ErrorKind::convert(e)),
-      Context::List(mut v) => Context::List(
-        v.drain(..)
-          .map(|(i, e)| (i.into(), ErrorKind::convert(e)))
-          .collect(),
-      ),
+      Context::List(mut v) => Context::List(v.drain(..).map(|(i, e)| (i.into(), ErrorKind::convert(e))).collect()),
     }
   }
 }
@@ -230,13 +226,13 @@ macro_rules! fix_error (
 #[macro_export(local_inner_macros)]
 macro_rules! flat_map(
   ($i:expr, $submac:ident!( $($args:tt)* ), $submac2:ident!( $($args2:tt)* )) => (
-    flat_map!(__impl $i, $submac!($($args)*), $submac2!($($args2)*));
+    flat_map!(__impl $i, $submac!($($args)*), $submac2!($($args2)*))
   );
   ($i:expr, $submac:ident!( $($args:tt)* ), $g:expr) => (
     flat_map!(__impl $i, $submac!($($args)*), call!($g));
   );
   ($i:expr, $f:expr, $submac:ident!( $($args:tt)* )) => (
-    flat_map!(__impl $i, call!($f), $submac!($($args)*));
+    flat_map!(__impl $i, call!($f), $submac!($($args)*))
   );
   ($i:expr, $f:expr, $g:expr) => (
     flat_map!(__impl $i, call!($f), call!($g));

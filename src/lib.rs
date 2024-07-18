@@ -405,15 +405,8 @@ pub use self::verbose_errors::*;
 #[cfg(not(feature = "verbose-errors"))]
 pub use self::simple_errors::*;
 
-pub use self::branch::*;
 pub use self::internal::*;
-pub use self::macros::*;
-pub use self::methods::*;
-pub use self::multi::*;
-pub use self::sequence::*;
 
-pub use self::bits::*;
-pub use self::bytes::*;
 
 pub use self::character::*;
 pub use self::nom::*;
@@ -422,7 +415,6 @@ pub use self::whitespace::*;
 
 #[cfg(feature = "regexp")]
 pub use self::regexp::*;
-pub use self::str::*;
 
 #[macro_use]
 mod util;

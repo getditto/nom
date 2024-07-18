@@ -175,13 +175,13 @@ macro_rules! fix_error (
 #[macro_export(local_inner_macros)]
 macro_rules! flat_map(
   ($i:expr, $submac:ident!( $($args:tt)* ), $submac2:ident!( $($args2:tt)* )) => (
-    flat_map!(__impl $i, $submac!($($args)*), $submac2!($($args2)*));
+    flat_map!(__impl $i, $submac!($($args)*), $submac2!($($args2)*))
   );
   ($i:expr, $submac:ident!( $($args:tt)* ), $g:expr) => (
     flat_map!(__impl $i, $submac!($($args)*), call!($g));
   );
   ($i:expr, $f:expr, $submac:ident!( $($args:tt)* )) => (
-    flat_map!(__impl $i, call!($f), $submac!($($args)*));
+    flat_map!(__impl $i, call!($f), $submac!($($args)*))
   );
   ($i:expr, $f:expr, $g:expr) => (
     flat_map!(__impl $i, call!($f), call!($g));

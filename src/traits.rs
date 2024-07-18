@@ -1,15 +1,15 @@
 //! Traits input types have to implement to work with nom combinators
 //!
 use internal::{Err, IResult, Needed};
-use lib::std::ops::{Range, RangeFrom, RangeFull, RangeTo};
 use lib::std::iter::Enumerate;
-use lib::std::slice::Iter;
 use lib::std::iter::Map;
+use lib::std::ops::{Range, RangeFrom, RangeFull, RangeTo};
+use lib::std::slice::Iter;
 
-use lib::std::str::Chars;
-use lib::std::str::CharIndices;
-use lib::std::str::FromStr;
 use lib::std::str::from_utf8;
+use lib::std::str::CharIndices;
+use lib::std::str::Chars;
+use lib::std::str::FromStr;
 #[cfg(feature = "alloc")]
 use lib::std::string::String;
 #[cfg(feature = "alloc")]
@@ -17,10 +17,10 @@ use lib::std::vec::Vec;
 
 use memchr;
 
-#[cfg(feature = "verbose-errors")]
-use verbose_errors::Context;
 #[cfg(not(feature = "verbose-errors"))]
 use simple_errors::Context;
+#[cfg(feature = "verbose-errors")]
+use verbose_errors::Context;
 
 use util::ErrorKind;
 
@@ -28,7 +28,6 @@ use util::ErrorKind;
 pub trait InputLength {
   /// calculates the input length, as indicated by its name,
   /// and the name of the trait itself
-  #[inline]
   fn input_len(&self) -> usize;
 }
 
@@ -160,31 +159,24 @@ as_bytes_array_impls! {
 /// transforms common types to a char for basic token parsing
 pub trait AsChar {
   /// makes a char from self
-  #[inline]
   fn as_char(self) -> char;
 
   /// tests that self is an alphabetic character
   ///
   /// warning: for `&str` it recognizes alphabetic
   /// characters outside of the 52 ASCII letters
-  #[inline]
   fn is_alpha(self) -> bool;
 
   /// tests that self is an alphabetic character
   /// or a decimal digit
-  #[inline]
   fn is_alphanum(self) -> bool;
   /// tests that self is a decimal digit
-  #[inline]
   fn is_dec_digit(self) -> bool;
   /// tests that self is an hex digit
-  #[inline]
   fn is_hex_digit(self) -> bool;
   /// tests that self is an octal digit
-  #[inline]
   fn is_oct_digit(self) -> bool;
   /// gets the len in bytes for self
-  #[inline]
   fn len(self) -> usize;
 }
 
@@ -460,8 +452,8 @@ impl<'a> InputTake for &'a str {
 /// `InputTakeAtPosition` (like the one for `&[u8]`).
 pub trait UnspecializedInput {}
 
-use types::CompleteStr;
 use types::CompleteByteSlice;
+use types::CompleteStr;
 
 /// methods to take as much input as possible until the provided function returns true for the current element
 ///
@@ -551,10 +543,7 @@ impl<'a> InputTakeAtPosition for CompleteByteSlice<'a> {
     P: Fn(Self::Item) -> bool,
   {
     match (0..self.0.len()).find(|b| predicate(self.0[*b])) {
-      Some(i) => Ok((
-        CompleteByteSlice(&self.0[i..]),
-        CompleteByteSlice(&self.0[..i]),
-      )),
+      Some(i) => Ok((CompleteByteSlice(&self.0[i..]), CompleteByteSlice(&self.0[..i]))),
       None => {
         let (i, o) = self.0.take_split(self.0.len());
         Ok((CompleteByteSlice(i), CompleteByteSlice(o)))
@@ -568,18 +557,12 @@ impl<'a> InputTakeAtPosition for CompleteByteSlice<'a> {
   {
     match (0..self.0.len()).find(|b| predicate(self.0[*b])) {
       Some(0) => Err(Err::Error(Context::Code(CompleteByteSlice(self.0), e))),
-      Some(i) => Ok((
-        CompleteByteSlice(&self.0[i..]),
-        CompleteByteSlice(&self.0[..i]),
-      )),
+      Some(i) => Ok((CompleteByteSlice(&self.0[i..]), CompleteByteSlice(&self.0[..i]))),
       None => {
         if self.0.len() == 0 {
           Err(Err::Error(Context::Code(CompleteByteSlice(self.0), e)))
         } else {
-          Ok((
-            CompleteByteSlice(&self.0[self.0.len()..]),
-            CompleteByteSlice(self.0),
-          ))
+          Ok((CompleteByteSlice(&self.0[self.0.len()..]), CompleteByteSlice(self.0)))
         }
       }
     }
@@ -711,8 +694,8 @@ impl<'a, 'b> Compare<&'b [u8]> for &'a [u8] {
     let other = &t[..m];
 
     if !reduced.iter().zip(other).all(|(a, b)| match (*a, *b) {
-      (0...64, 0...64) | (91...96, 91...96) | (123...255, 123...255) => a == b,
-      (65...90, 65...90) | (97...122, 97...122) | (65...90, 97...122) | (97...122, 65...90) => *a | 0b00_10_00_00 == *b | 0b00_10_00_00,
+      (0..=64, 0..=64) | (91..=96, 91..=96) | (123..=255, 123..=255) => a == b,
+      (65..=90, 65..=90) | (97..=122, 97..=122) | (65..=90, 97..=122) | (97..=122, 65..=90) => *a | 0b00_10_00_00 == *b | 0b00_10_00_00,
       _ => false,
     }) {
       CompareResult::Error
@@ -904,44 +887,43 @@ impl<'a, R: FromStr> ParseTo<R> for &'a str {
 /// `Index`, but can actually return
 /// something else than a `&[T]` or `&str`
 pub trait Slice<R> {
-  #[inline(always)]
   fn slice(&self, range: R) -> Self;
 }
 
 macro_rules! impl_fn_slice {
-    ( $ty:ty ) => {
-        fn slice(&self, range:$ty) -> Self {
-            &self[range]
-        }
+  ( $ty:ty ) => {
+    fn slice(&self, range: $ty) -> Self {
+      &self[range]
     }
+  };
 }
 
 macro_rules! slice_range_impl {
-    ( [ $for_type:ident ], $ty:ty ) => {
-        impl<'a, $for_type> Slice<$ty> for &'a [$for_type] {
-            impl_fn_slice!( $ty );
-        }
-    };
-    ( $for_type:ty, $ty:ty ) => {
-        impl<'a> Slice<$ty> for &'a $for_type {
-            impl_fn_slice!( $ty );
-        }
+  ( [ $for_type:ident ], $ty:ty ) => {
+    impl<'a, $for_type> Slice<$ty> for &'a [$for_type] {
+      impl_fn_slice!($ty);
     }
+  };
+  ( $for_type:ty, $ty:ty ) => {
+    impl<'a> Slice<$ty> for &'a $for_type {
+      impl_fn_slice!($ty);
+    }
+  };
 }
 
 macro_rules! slice_ranges_impl {
-    ( [ $for_type:ident ] ) => {
-        slice_range_impl! {[$for_type], Range<usize>}
-        slice_range_impl! {[$for_type], RangeTo<usize>}
-        slice_range_impl! {[$for_type], RangeFrom<usize>}
-        slice_range_impl! {[$for_type], RangeFull}
-    };
-    ( $for_type:ty ) => {
-        slice_range_impl! {$for_type, Range<usize>}
-        slice_range_impl! {$for_type, RangeTo<usize>}
-        slice_range_impl! {$for_type, RangeFrom<usize>}
-        slice_range_impl! {$for_type, RangeFull}
-    }
+  ( [ $for_type:ident ] ) => {
+    slice_range_impl! {[$for_type], Range<usize>}
+    slice_range_impl! {[$for_type], RangeTo<usize>}
+    slice_range_impl! {[$for_type], RangeFrom<usize>}
+    slice_range_impl! {[$for_type], RangeFull}
+  };
+  ( $for_type:ty ) => {
+    slice_range_impl! {$for_type, Range<usize>}
+    slice_range_impl! {$for_type, RangeTo<usize>}
+    slice_range_impl! {$for_type, RangeFrom<usize>}
+    slice_range_impl! {$for_type, RangeFull}
+  };
 }
 
 slice_ranges_impl! {str}
@@ -1066,10 +1048,8 @@ pub trait ExtendInto {
   type Extender: Extend<Self::Item>;
 
   /// create a new `Extend` of the correct type
-  #[inline]
   fn new_builder(&self) -> Self::Extender;
   /// accumulate the input into an accumulator
-  #[inline]
   fn extend_into(&self, acc: &mut Self::Extender);
 }
 
